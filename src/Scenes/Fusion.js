@@ -3,10 +3,10 @@ class Fusion extends Phaser.Scene {
         super("fusionScene");
         this.timer = 0;
         this.dragObj;
-        // this.prevX = 0;
-        // this.prevY = 0;
-        // this.currX = 0;
-        // this.currY = 0;
+        this.prevX = 0;
+        this.prevY = 0;
+        this.currX = 0;
+        this.currY = 0;
     }
 
     // init() {
@@ -23,9 +23,10 @@ class Fusion extends Phaser.Scene {
 
         this.pointer = this.input.activePointer;
         
-        document.getElementById('description').innerHTML = '<strong>Alien Fusion</strong><br>Click and drag to move aliens'
+        document.getElementById('description').innerHTML = '<strong>Alien Fusion</strong><br>Click and drag to move aliens<br>The aliens slide too!'
     }
 
+    //code for click and drag
     startDrag(pointer, targets){
         if(targets){
             this.input.off('pointerdown', this.startDrag, this);
@@ -37,6 +38,8 @@ class Fusion extends Phaser.Scene {
 
     doDrag(pointer){
         if(this.dragObj != null){
+            this.dragObj.setVelocityX(0);
+            this.dragObj.setVelocityY(0);
             this.dragObj.x = pointer.x;
             this.dragObj.y = pointer.y;
         }
@@ -46,35 +49,43 @@ class Fusion extends Phaser.Scene {
         this.input.on('pointerdown', this.startDrag, this);
         this.input.off('pointermove', this.doDrag, this);
         this.input.off('pointerup', this.stopDrag, this);
-        // if(this.dragObj != null){
-        //     this.dragObj.setVelocityX((this.currX - this.prevX) * 3);
-        //     this.dragObj.setVelocityY((this.currY - this.prevY) * 3);
-        // }
+        if(this.dragObj != null){
+            //slide when let go
+            this.dragObj.setVelocityX((this.currX - this.prevX) * 3);
+            this.dragObj.setVelocityY((this.currY - this.prevY) * 3);
+        }
     }
 
     update() {
 
         this.timer++;
+        //create a beige alien every few seconds
         if((this.timer % 120) == 0){
             this.beigeArray.push(this.physics.add.sprite(
                 Math.random() * game.config.width, Math.random() * game.config.height, "beigeAlien"));
         }
 
-        // if(this.timer % 3 == 0){
-        //     this.prevX = this.currX;
-        //     this.prevY = this.currY;
-        //     this.currX = this.pointer.x;
-        //     this.currY = this.pointer.y;
-        // }
+        //add some slide to aliens
+        if(this.timer % 3 == 0){
+            this.prevX = this.currX;
+            this.prevY = this.currY;
+            this.currX = this.pointer.x;
+            this.currY = this.pointer.y;
+        }
 
+        //filter aliens that are out of bounds
         this.beigeArray = this.beigeArray.filter((alien) => alien.y > -(alien.displayHeight/2));
         this.blueArray = this.blueArray.filter((alien) => alien.y > -(alien.displayHeight/2));
         this.greenArray = this.greenArray.filter((alien) => alien.y > -(alien.displayHeight/2));
         this.pinkArray = this.pinkArray.filter((alien) => alien.y > -(alien.displayHeight/2));
         this.yellowArray = this.yellowArray.filter((alien) => alien.y > -(alien.displayHeight/2));
 
+        //handle collisions between aliens of the same type
         for(let alien of this.beigeArray){
             alien.setInteractive();
+            if(alien.x > game.config.width || alien.x < 0 || alien.y > game.config.height || alien.y < 0){
+                alien.setVelocity(0, 0);
+            }
             for(let other of this.beigeArray){
                 if(this.collides(alien, other) && !this.pointer.isDown){
                     this.blueArray.push(this.physics.add.image(alien.x, alien.y, "blueAlien"));
@@ -87,8 +98,8 @@ class Fusion extends Phaser.Scene {
                         stopAfter: 50,
                         alpha: {start: .85, end: .1}
                     })
-                    // alien.setVelocity(0, 0);
-                    // other.setVelocity(0, 0);
+                    alien.setVelocity(0, 0);
+                    other.setVelocity(0, 0);
                     alien.y = -500;
                     other.y = -300;
                     this.sound.play("score");
@@ -99,6 +110,9 @@ class Fusion extends Phaser.Scene {
         for(let alien of this.blueArray){
             alien.setInteractive();
             alien.setScale(1.25);
+            if(alien.x > game.config.width || alien.x < 0 || alien.y > game.config.height || alien.y < 0){
+                alien.setVelocity(0, 0);
+            }
             for(let other of this.blueArray){
                 if(this.collides(alien, other) && !this.pointer.isDown){
                     this.greenArray.push(this.physics.add.image(alien.x, alien.y, "greenAlien"));
@@ -111,8 +125,8 @@ class Fusion extends Phaser.Scene {
                         stopAfter: 70,
                         alpha: {start: .85, end: .1}
                     })
-                    // alien.setVelocity(0, 0);
-                    // other.setVelocity(0, 0);
+                    alien.setVelocity(0, 0);
+                    other.setVelocity(0, 0);
                     alien.y = -500;
                     other.y = -300;
                     this.sound.play("score");
@@ -122,6 +136,9 @@ class Fusion extends Phaser.Scene {
         for(let alien of this.greenArray){
             alien.setInteractive();
             alien.setScale(1.5);
+            if(alien.x > game.config.width || alien.x < 0 || alien.y > game.config.height || alien.y < 0){
+                alien.setVelocity(0, 0);
+            }
             for(let other of this.greenArray){
                 if(this.collides(alien, other) && !this.pointer.isDown){
                     this.pinkArray.push(this.physics.add.image(alien.x, alien.y, "pinkAlien"));
@@ -134,8 +151,8 @@ class Fusion extends Phaser.Scene {
                         stopAfter: 90,
                         alpha: {start: .85, end: .1}
                     })
-                    // alien.setVelocity(0, 0);
-                    // other.setVelocity(0, 0);
+                    alien.setVelocity(0, 0);
+                    other.setVelocity(0, 0);
                     alien.y = -500;
                     other.y = -300;
                     this.sound.play("score");
@@ -145,6 +162,9 @@ class Fusion extends Phaser.Scene {
         for(let alien of this.pinkArray){
             alien.setInteractive();
             alien.setScale(1.75);
+            if(alien.x > game.config.width || alien.x < 0 || alien.y > game.config.height || alien.y < 0){
+                alien.setVelocity(0, 0);
+            }
             for(let other of this.pinkArray){
                 if(this.collides(alien, other) && !this.pointer.isDown){
                     this.yellowArray.push(this.physics.add.image(alien.x, alien.y, "yellowAlien"));
@@ -157,17 +177,21 @@ class Fusion extends Phaser.Scene {
                         stopAfter: 110,
                         alpha: {start: .85, end: .1}
                     })
-                    // alien.setVelocity(0, 0);
-                    // other.setVelocity(0, 0);
+                    alien.setVelocity(0, 0);
+                    other.setVelocity(0, 0);
                     alien.y = -500;
                     other.y = -300;
                     this.sound.play("score");
                 }
             }
         }
+        //yellow aliens have a bigger explosion
         for(let alien of this.yellowArray){
             alien.setInteractive();
             alien.setScale(2);
+            if(alien.x > game.config.width || alien.x < 0 || alien.y > game.config.height || alien.y < 0){
+                alien.setVelocity(0, 0);
+            }
             for(let other of this.yellowArray){
                 if(this.collides(alien, other) && !this.pointer.isDown){
                     this.add.particles(alien.x, alien.y, "particle", { 
@@ -215,28 +239,49 @@ class Fusion extends Phaser.Scene {
                         stopAfter: 200,
                         alpha: {start: .85, end: .1}
                     })
-                    // alien.setVelocity(0, 0);
-                    // other.setVelocity(0, 0);
+                    alien.setVelocity(0, 0);
+                    other.setVelocity(0, 0);
                     alien.y = -500;
                     other.y = -300;
                     this.sound.play("score");
                 }
             }
-        
-            // for(let alien of this.beigeArray){
-            //     if(alien.x > game.config.width+50 || alien.x < -50 || alien.y > game.config.height+50 || alien.y < -50){
-            //         alien.destroy();
-            //     }
-            // }
+
+        }
+
+        //delete out of bounds aliens
+        for(let alien of this.beigeArray){
+            if(alien.x > game.config.width+50 || alien.x < -50 || alien.y > game.config.height+50 || alien.y < -50){
+                alien.destroy();
+            }
+        }
+        for(let alien of this.blueArray){
+            if(alien.x > game.config.width+50 || alien.x < -50 || alien.y > game.config.height+50 || alien.y < -50){
+                alien.destroy();
+            }
+        }
+        for(let alien of this.greenArray){
+            if(alien.x > game.config.width+50 || alien.x < -50 || alien.y > game.config.height+50 || alien.y < -50){
+                alien.destroy();
+            }
+        }
+        for(let alien of this.pinkArray){
+            if(alien.x > game.config.width+50 || alien.x < -50 || alien.y > game.config.height+50 || alien.y < -50){
+                alien.destroy();
+            }
+        }
+        for(let alien of this.yellowArray){
+            if(alien.x > game.config.width+50 || alien.x < -50 || alien.y > game.config.height+50 || alien.y < -50){
+                alien.destroy();
+            }
         }
     }
 
+    //collision detection, checks that it isn't colliding with itself
     collides(a, b) {
         if (Math.abs(a.x - b.x) > (a.displayWidth/2 + b.displayWidth/2)) return false;
         if (Math.abs(a.y - b.y) > (a.displayHeight/2 + b.displayHeight/2)) return false;
         if(a == b) return false;
         return true;
     }
-
-    
 }
